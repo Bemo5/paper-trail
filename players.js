@@ -41,10 +41,10 @@ const FOOTBALL = [
   ["Antoine Griezmann", "France", "Forward", [["Real Sociedad",2009,2014],["Atlético Madrid",2014,2019],["Barcelona",2019,2021],["Atlético Madrid",2021,null]]],
   ["Ousmane Dembélé", "France", "Winger", [["Rennes",2015,2016],["Borussia Dortmund",2016,2017],["Barcelona",2017,2023],["Paris Saint-Germain",2023,null]]],
   ["James Rodríguez", "Colombia", "Midfielder", [["Envigado",2006,2008],["Banfield",2008,2010],["Porto",2010,2013],["Monaco",2013,2014],["Real Madrid",2014,2020],["Bayern Munich",2017,2019,"L"],["Everton",2020,2021],["Al-Rayyan",2021,2022],["Olympiacos",2022,2023],["São Paulo",2023,2024],["Rayo Vallecano",2024,2025],["León",2025,2025]]],
-  ["Kaká", "Brazil", "Midfielder", [["São Paulo",2001,2003],["AC Milan",2003,2009],["Real Madrid",2009,2013],["AC Milan",2013,2014],["Orlando City",2014,2017],["São Paulo",2014,2014,"L"]]],
+  ["Kaká", "Brazil", "Midfielder", [["São Paulo",2001,2003],["AC Milan",2003,2009],["Real Madrid",2009,2013],["AC Milan",2013,2014],["São Paulo",2014,2014,"L"],["Orlando City",2015,2017]]],
   ["Ronaldinho", "Brazil", "Forward", [["Grêmio",1998,2001],["Paris Saint-Germain",2001,2003],["Barcelona",2003,2008],["AC Milan",2008,2011],["Flamengo",2011,2012],["Atlético Mineiro",2012,2014],["Querétaro",2014,2015],["Fluminense",2015,2015]]],
   ["Ronaldo Nazário", "Brazil", "Striker", [["Cruzeiro",1993,1994],["PSV Eindhoven",1994,1996],["Barcelona",1996,1997],["Inter Milan",1997,2002],["Real Madrid",2002,2007],["AC Milan",2007,2008],["Corinthians",2009,2011]]],
-  ["Yaya Touré", "Ivory Coast", "Midfielder", [["Beveren",2001,2003],["Metalurh Donetsk",2003,2005],["Olympiacos",2005,2006],["Monaco",2006,2007],["Barcelona",2007,2010],["Manchester City",2010,2018],["Olympiacos",2018,2018],["Qingdao Hainiu",2020,2020]]],
+  ["Yaya Touré", "Ivory Coast", "Midfielder", [["Beveren",2001,2003],["Metalurh Donetsk",2003,2005],["Olympiacos",2005,2006],["Monaco",2006,2007],["Barcelona",2007,2010],["Manchester City",2010,2018],["Olympiacos",2018,2018],["Qingdao Huanghai",2020,2020]]],
   ["Kevin-Prince Boateng", "Ghana", "Midfielder", [["Hertha Berlin",2005,2007],["Tottenham Hotspur",2007,2009],["Borussia Dortmund",2009,2009,"L"],["Portsmouth",2009,2010],["AC Milan",2010,2013],["Schalke 04",2013,2015],["AC Milan",2016,2016],["Las Palmas",2016,2017],["Eintracht Frankfurt",2017,2018],["Sassuolo",2018,2019],["Barcelona",2019,2019,"L"],["Fiorentina",2019,2020],["Beşiktaş",2020,2020,"L"],["Monza",2020,2021],["Hertha Berlin",2021,2023]]],
   ["Juan Mata", "Spain", "Midfielder", [["Valencia",2007,2011],["Chelsea",2011,2014],["Manchester United",2014,2022],["Galatasaray",2022,2023],["Vissel Kobe",2023,2023],["Western Sydney Wanderers",2024,2025]]],
   ["Michael Owen", "England", "Striker", [["Liverpool",1996,2004],["Real Madrid",2004,2005],["Newcastle United",2005,2009],["Manchester United",2009,2012],["Stoke City",2012,2013]]],
@@ -80,6 +80,9 @@ const FOOTBALL = [
 ];
 
 const BASKETBALL = [
+  ["Michael Jordan", "USA", "Shooting guard", [["CHI",1984,1993],["CHI",1995,1998],["WAS",2001,2003]]],
+  ["Paul Pierce", "USA", "Forward", [["BOS",1998,2013],["BKN",2013,2014],["WAS",2014,2015],["LAC",2015,2017]]],
+  ["Grant Hill", "USA", "Forward", [["DET",1994,2000],["ORL",2000,2007],["PHX",2007,2012],["LAC",2012,2013]]],
   ["Chris Paul", "USA", "Point guard", [["NOH",2005,2011],["LAC",2011,2017],["HOU",2017,2019],["OKC",2019,2020],["PHX",2020,2023],["GSW",2023,2024],["SAS",2024,2025],["LAC",2025,null]]],
   ["Carmelo Anthony", "USA", "Forward", [["DEN",2003,2011],["NYK",2011,2017],["OKC",2017,2018],["HOU",2018,2019],["POR",2019,2021],["LAL",2021,2022]]],
   ["Dwight Howard", "USA", "Center", [["ORL",2004,2012],["LAL",2012,2013],["HOU",2013,2016],["ATL",2016,2017],["CHA",2017,2018],["WAS",2018,2019],["LAL",2019,2020],["PHI",2020,2021],["LAL",2021,2022]]],
@@ -147,6 +150,13 @@ const BASKETBALL = [
   ["Anthony Davis", "USA", "Big man", [["NOP",2012,2019],["LAL",2019,2025],["DAL",2025,null]]],
 ];
 
+// Extra names for the search box only. They are never the answer, so the
+// suggestions don't give away who is in the pool.
+const DECOYS = {
+  football: ["Lionel Messi","Cristiano Ronaldo","Kylian Mbappé","Erling Haaland","Harry Kane","Robert Lewandowski","Karim Benzema","Luka Modrić","Toni Kroos","Sergio Ramos","Gerard Piqué","Andrés Iniesta","Xavi Hernández","Sergio Busquets","Iker Casillas","Gianluigi Buffon","Francesco Totti","Alessandro Del Piero","Paolo Maldini","Thierry Henry","Zinedine Zidane","Wayne Rooney","Steven Gerrard","Frank Lampard","John Terry","Rio Ferdinand","David Beckham","Paul Scholes","Ryan Giggs","Michael Carrick","Michael Ballack","Michael Essien","Michael Laudrup","Michael Olise","Michael Bradley","Miroslav Klose","Thomas Müller","Manuel Neuer","Philipp Lahm","Marco Reus","Mario Götze","İlkay Gündoğan","Virgil van Dijk","Frenkie de Jong","Bernardo Silva","João Félix","Rúben Dias","Bruno Fernandes","Pepe","Ricardo Quaresma","Nani","Sergio Agüero","Javier Mascherano","Juan Román Riquelme","Lautaro Martínez","Paulo Dybala","Julián Álvarez","Vinícius Júnior","Rodrygo","Casemiro","Marcelo","Dani Alves","Roberto Carlos","Rivaldo","Hulk","Oscar","Ramires","Roberto Firmino","Gabriel Jesus","Richarlison","Antony","Mohamed Elneny","Mohamed Aboutrika","Omar Marmoush","Mahmoud Trézéguet","Kalidou Koulibaly","Victor Osimhen","Jay-Jay Okocha","Nwankwo Kanu","Obafemi Martins","Asamoah Gyan","Peter Schmeichel","Henrik Larsson","Freddie Ljungberg","Dimitar Berbatov","Hristo Stoichkov","Gheorghe Hagi","Pavel Nedvěd","Petr Čech","Tomáš Rosický","Marek Hamšík","Robert Pirès","Franck Ribéry","Samir Nasri","Hatem Ben Arfa","Dimitri Payet","N'Golo Kanté","Marcus Rashford","Mason Mount","Kai Havertz","Timo Werner","Jack Grealish","Phil Foden","Bukayo Saka","Declan Rice","Jude Bellingham","Pedri","Gavi","Lamine Yamal","Ansu Fati","Dani Olmo","Ferran Torres","Rafael Leão","Theo Hernández","Ciro Immobile","Lorenzo Insigne","Federico Chiesa","Dušan Vlahović","Christian Pulisic","Weston McKennie","Raúl","Fernando Morientes","David Villa","David Silva","Santi Cazorla","Jesús Navas","Isco","Marco Asensio","Luka Jović"],
+  basketball: ["LeBron James","Kobe Bryant","Stephen Curry","Tim Duncan","Dirk Nowitzki","Giannis Antetokounmpo","Nikola Jokić","Joel Embiid","Jayson Tatum","Jaylen Brown","Devin Booker","Ja Morant","Zion Williamson","Trae Young","Donovan Mitchell","Anthony Edwards","Shai Gilgeous-Alexander","Draymond Green","Manu Ginóbili","Magic Johnson","Larry Bird","Kareem Abdul-Jabbar","Hakeem Olajuwon","Patrick Ewing","Charles Barkley","Scottie Pippen","Dennis Rodman","Karl Malone","John Stockton","Reggie Miller","Gary Payton","Yao Ming","Michael Redd","Michael Beasley","Michael Porter Jr.","Michael Kidd-Gilchrist","Michael Cooper","Mike Bibby","Mike Miller","Mikal Bridges","Tyrese Haliburton","Pascal Siakam","Fred VanVleet","Domantas Sabonis","De'Aaron Fox","Karl-Anthony Towns","Julius Randle","Jalen Brunson","Zach LaVine","Lauri Markkanen","Rudy Gobert","Bam Adebayo","Tyler Herro","Brandon Ingram","CJ McCollum","Steve Francis","Stephon Marbury","Penny Hardaway","Alonzo Mourning","Ben Wallace","Rasheed Wallace","Richard Hamilton","Tayshaun Prince","Paul Millsap","Deron Williams","Amar'e Stoudemire","Andrei Kirilenko","Hedo Türkoğlu","Peja Stojaković","Vlade Divac","Chris Webber","Elton Brand","Joe Johnson","Kevin Martin","Danny Granger","Brandon Roy","Greg Oden","Andrew Bynum","Andrew Wiggins","Jabari Parker","Lonzo Ball","LaMelo Ball","Victor Wembanyama","Cade Cunningham","Paolo Banchero","Chet Holmgren","Jamal Murray","Aaron Gordon","Kyle Kuzma","Jordan Clarkson","Marcus Smart","Andre Miller","Jason Terry","Jason Williams","Jason Richardson","Shawn Marion","Antawn Jamison","Caron Butler","Kevin McHale","Dominique Wilkins","Clyde Drexler","Julius Erving","Wilt Chamberlain","Bill Russell","Jerry West","Dikembe Mutombo","Manute Bol","Spud Webb","Nate Robinson"],
+};
+
 const NBA_TEAMS = {
   ATL:["Atlanta Hawks","atl"], BOS:["Boston Celtics","bos"], BKN:["Brooklyn Nets","bkn"], NJN:["New Jersey Nets","njn"],
   CHA:["Charlotte Hornets","cha"], CHI:["Chicago Bulls","chi"], CLE:["Cleveland Cavaliers","cle"], DAL:["Dallas Mavericks","dal"],
@@ -159,4 +169,4 @@ const NBA_TEAMS = {
   TOR:["Toronto Raptors","tor"], UTA:["Utah Jazz","utah"], WAS:["Washington Wizards","wsh"],
 };
 
-if (typeof module !== "undefined") module.exports = { FOOTBALL, BASKETBALL, NBA_TEAMS };
+if (typeof module !== "undefined") module.exports = { FOOTBALL, BASKETBALL, NBA_TEAMS, DECOYS };

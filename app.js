@@ -15,6 +15,13 @@ const POOLS = {
 function toPlayer([name, country, position, career]) {
   return { id: fold(name), name, country, position, career };
 }
+// Everything the search box can suggest: the pool plus decoy names.
+const SEARCH = {};
+for (const s of Object.keys(POOLS)) {
+  const ids = new Set(POOLS[s].map(p => p.id));
+  SEARCH[s] = POOLS[s].concat(DECOYS[s].map(name => ({ id: fold(name), name })).filter(p => !ids.has(p.id)));
+}
+const touch = matchMedia("(pointer: coarse)").matches;
 
 // ---------- storage ----------
 let db = load();
@@ -36,7 +43,11 @@ const nameInput = $("name");
 nameInput.value = db.last || "";
 nameInput.addEventListener("input", renderHome);
 
-function currentName() { return nameInput.value.trim(); }
+// "bemo" and "Bemo" are the same player.
+function currentName() {
+  const typed = nameInput.value.trim();
+  return Object.keys(db.profiles).find(n => n.toLowerCase() === typed.toLowerCase()) || typed;
+}
 
 function renderHome() {
   const names = Object.keys(db.profiles);
@@ -115,7 +126,13 @@ function loadRound() {
   renderPath();
   renderAnswer();
   if (cur.done) showResult();
-  else { $("result").hidden = true; $("answer").hidden = false; setTimeout(() => $("guess").focus(), 50); }
+  else {
+    $("result").hidden = true;
+    $("answer").hidden = false;
+    // On phones the keyboard would cover the clubs, so wait for a tap.
+    if (!touch) setTimeout(() => $("guess").focus(), 50);
+  }
+  scrollTo(0, 0);
 }
 
 function renderStats() {
@@ -173,7 +190,7 @@ function renderAnswer() {
   closeSuggest();
 }
 
-const byId = id => POOLS[G.sport].find(p => p.id === id);
+const byId = id => SEARCH[G.sport].find(p => p.id === id);
 
 function guess(p) {
   if (!G || G.round.done) return;
@@ -238,7 +255,7 @@ let hits = [], sel = 0;
 input.addEventListener("input", () => {
   const q = fold(input.value.trim());
   if (!q) return closeSuggest();
-  hits = POOLS[G.sport]
+  hits = SEARCH[G.sport]
     .filter(p => !G.round.wrong.includes(p.id))
     .map(p => ({ p, rank: rank(p.id, q) }))
     .filter(x => x.rank < 9)
@@ -290,6 +307,8 @@ list.addEventListener("pointerdown", e => {
   pickHit(+li.dataset.i);
 });
 input.addEventListener("blur", () => setTimeout(closeSuggest, 120));
+// Keep the box and its suggestions above the phone keyboard.
+if (touch) input.addEventListener("focus", () => setTimeout(() => input.scrollIntoView({ block: "start", behavior: "smooth" }), 300));
 
 function pickHit(i) {
   const p = hits[i];

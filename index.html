@@ -5,74 +5,72 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Paper Trail</title>
 <meta name="description" content="Name the player from the clubs he played for. Football and basketball.">
-<meta name="theme-color" content="#0B0B0B">
+<meta name="theme-color" content="#111111">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="app">
 
 <!-- Home -->
 <main id="home" class="screen">
-  <header class="top"><span class="logo" data-logo></span><span class="live">LIVE</span></header>
+  <header class="top"><span class="title">PAPER <i>TRAIL</i></span></header>
+  <div class="stripe"></div>
 
-  <section class="headline"><h1>Name the<br>player.</h1><p>You get his clubs. You get three guesses.</p></section>
+  <div class="home-body">
+    <p class="lead">You get a player's clubs in order. Name him in three guesses.</p>
 
-  <section class="who">
-    <label class="bar" for="name"><span class="tag">NAME</span><input id="name" autocomplete="off" maxlength="20" placeholder="TYPE YOUR NAME"></label>
+    <label class="label" for="name">Your name</label>
+    <input id="name" class="field-input" autocomplete="off" maxlength="20" placeholder="Type your name">
     <div id="profiles" class="profiles"></div>
-  </section>
 
-  <section class="sports">
-    <button class="sport football" data-sport="football">
-      <span class="sport-name">Football</span>
-      <span class="sport-sub" data-sub="football"></span>
-      <span class="flagband"></span>
-    </button>
-    <button class="sport basketball" data-sport="basketball">
-      <span class="sport-name">Basketball</span>
-      <span class="sport-sub" data-sub="basketball"></span>
-    </button>
-  </section>
+    <div class="sports">
+      <button class="sport football" data-sport="football"><span class="sport-name">FOOTBALL</span><span class="sport-sub" data-sub="football"></span></button>
+      <button class="sport basketball" data-sport="basketball"><span class="sport-name">BASKETBALL</span><span class="sport-sub" data-sub="basketball"></span></button>
+    </div>
 
-  <section class="board" id="board" hidden>
-    <h2>Standings</h2>
-    <table id="board-table"></table>
-  </section>
+    <section class="board" id="board" hidden>
+      <h2>Scores on this phone</h2>
+      <table id="board-table"></table>
+    </section>
+  </div>
 
-  <footer class="foot">CAREERS UP TO THE 2025-26 SEASON · LOGOS FROM ESPN</footer>
+  <footer class="foot">Careers up to the 2025-26 season. Logos from ESPN.</footer>
 </main>
 
 <!-- Game -->
 <main id="game" class="screen" hidden>
   <header class="top">
-    <button class="back" id="back" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"/></svg></button>
-    <span class="logo" data-logo></span><span class="live">LIVE</span>
+    <button class="back" id="back" aria-label="Home">‹</button>
+    <span class="title">PAPER <i>TRAIL</i></span>
+    <span class="pts" id="g-pts"></span>
   </header>
-  <section class="strip"><h1>Who's<br>this?</h1><div class="count" id="g-count"></div></section>
-  <div class="flagband"></div>
-  <section class="score"><div id="g-player"></div><div>PTS<b id="g-score">0</b></div><div>RUN<b id="g-streak">0</b></div></section>
-  <ol id="path" class="list"></ol>
-  <p id="hint" class="hint" hidden></p>
+  <div class="stripe"></div>
 
-  <div class="dock" id="answer">
-    <ul id="suggest" class="suggest" hidden></ul>
-    <div class="miss"><span id="wrong"></span><span class="lives" id="lives"></span><button id="btn-skip">GIVE UP</button></div>
-    <div class="bar"><span class="tag">GUESS</span><input id="guess" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="TYPE A NAME"><button class="hint-btn" id="btn-hint">HINT<br>−30</button></div>
-    <div class="ticker"><span id="ticker"></span></div>
+  <div class="q"><h1>Who's this?</h1><span id="g-count"></span></div>
+  <div class="grid-wrap"><ol id="grid" class="grid"></ol><p id="hint" class="hint" hidden></p></div>
+
+  <div class="ans" id="answer">
+    <div id="chips" class="chips" hidden></div>
+    <div class="meta">
+      <span class="dots" id="dots"></span><span id="wrong"></span>
+      <span class="links"><button id="btn-hint">Hint</button><button id="btn-skip">Give up</button></span>
+    </div>
+    <form class="field" id="guess-form" autocomplete="off">
+      <input id="guess" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" placeholder="Type a player…">
+      <button class="go" type="submit">GUESS</button>
+    </form>
   </div>
 
-  <div class="dock result" id="result" hidden>
+  <div class="ans result" id="result" hidden>
     <p class="verdict" id="verdict"></p>
-    <h3 id="reveal"></h3>
-    <p class="meta" id="reveal-meta"></p>
-    <button class="next" id="btn-next"><span class="tag">NEXT</span><span>NEXT PLAYER</span></button>
+    <h2 id="reveal"></h2>
+    <p class="reveal-meta" id="reveal-meta"></p>
+    <button class="next" id="btn-next">NEXT PLAYER</button>
   </div>
 </main>
 
-</div>
 <script src="players.js"></script>
 <script src="clubs.js"></script>
 <script src="app.js"></script>

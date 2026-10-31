@@ -1,8 +1,6 @@
 // Paper Trail: guess the player from his career path.
 // Progress lives in localStorage and is written after every guess.
 
-// The name is split in two: the second half is drawn in the accent colour.
-const BRAND = ["PAPER ", "TRAIL"];
 const KEY = "journeyman.v1"; // old name kept so saved scores carry over
 const LIVES = 3;
 const POINTS = { base: 100, wrong: 25, hint: 30, min: 10 };
@@ -17,7 +15,7 @@ const POOLS = {
 function toPlayer([name, country, position, career]) {
   return { id: fold(name), name, country, position, career };
 }
-// Everything the search box can suggest: the pool plus decoy names.
+// Everything the search can suggest: the pool plus decoy names.
 const SEARCH = {};
 for (const s of Object.keys(POOLS)) {
   const ids = new Set(POOLS[s].map(p => p.id));
@@ -61,8 +59,8 @@ function renderHome() {
   for (const s of Object.keys(POOLS)) {
     const st = p && p[s];
     document.querySelector(`[data-sub="${s}"]`).textContent = st && st.played
-      ? `${st.score} PTS · ${st.correct}/${st.played} RIGHT · RUN ${st.streak}`
-      : `${POOLS[s].length} PLAYERS`;
+      ? `${st.score} pts · ${st.correct} of ${st.played} right`
+      : `${POOLS[s].length} players`;
   }
 
   const rows = names.map(n => {
@@ -70,7 +68,7 @@ function renderHome() {
     return { n, fb: p.football.score, bb: p.basketball.score, best: Math.max(p.football.best, p.basketball.best) };
   }).sort((a, b) => (b.fb + b.bb) - (a.fb + a.bb));
   $("board").hidden = rows.length === 0;
-  $("board-table").innerHTML = `<tr><th>NAME</th><th>FOOTBALL</th><th>BASKETBALL</th><th>BEST RUN</th></tr>` +
+  $("board-table").innerHTML = `<tr><th>Name</th><th>Football</th><th>Basketball</th><th>Best run</th></tr>` +
     rows.map(r => `<tr><td>${esc(r.n)}</td><td>${r.fb}</td><td>${r.bb}</td><td>${r.best}</td></tr>`).join("");
 }
 
@@ -97,13 +95,22 @@ document.querySelectorAll(".sport").forEach(b => b.addEventListener("click", () 
 // ---------- game ----------
 let G = null; // { name, sport, stats, player, round }
 
+// The game screen is exactly as tall as what's visible, so the phone keyboard
+// pushes the guess box up instead of covering it.
+function fitViewport() {
+  const h = window.visualViewport ? visualViewport.height : innerHeight;
+  document.documentElement.style.setProperty("--vh", h + "px");
+  if (G) scrollTo(0, 0);
+}
+window.visualViewport?.addEventListener("resize", fitViewport);
+addEventListener("resize", fitViewport);
+
 function startGame(name, sport) {
   const stats = profile(name)[sport];
   G = { name, sport, stats };
   document.body.className = sport;
   $("home").hidden = true;
   $("game").hidden = false;
-  $("g-player").textContent = name;
   // Resume an unfinished round so a refresh can't skip a player.
   if (stats.current && POOLS[sport].some(p => p.id === stats.current.id)) loadRound();
   else nextRound();
@@ -124,41 +131,46 @@ function loadRound() {
   G.player = POOLS[G.sport].find(p => p.id === cur.id);
   G.round = cur;
   renderStats();
-  renderPath();
+  renderGrid();
   renderAnswer();
   if (cur.done) showResult();
   else {
     $("result").hidden = true;
     $("answer").hidden = false;
     // On phones the keyboard would cover the clubs, so wait for a tap.
-    if (!touch) setTimeout(() => $("guess").focus(), 50);
+    if (!touch) setTimeout(() => input.focus(), 50);
   }
-  scrollTo(0, 0);
+  $("grid").parentElement.scrollTop = 0;
 }
 
 function renderStats() {
-  $("g-score").textContent = G.stats.score;
-  $("g-streak").textContent = G.stats.streak;
+  $("g-pts").textContent = `${G.stats.score} pts · run ${G.stats.streak}`;
   const total = POOLS[G.sport].length;
-  $("g-count").innerHTML = `PLAYER ${Math.min(G.stats.seen.length + (G.round.done ? 0 : 1), total)}/${total}<br>${G.player.career.length} MOVES`;
-  $("ticker").textContent = ticker();
+  const n = Math.min(G.stats.seen.length + (G.round.done ? 0 : 1), total);
+  $("g-count").textContent = `${G.player.career.length} clubs · ${n}/${total}`;
 }
 
-function renderPath() {
-  const { career } = G.player;
-  $("path").innerHTML = career.map(([club, from, to, loan], i) => {
+function renderGrid() {
+  $("grid").innerHTML = G.player.career.map(([club, from, to, loan], i) => {
     const t = team(club);
-    const yrs = to === null ? `${from}–` : from === to ? `${from}` : `${from}–${to}`;
-    return `<li class="row" style="animation-delay:${i * 60}ms">
+    return `<li class="cell ${loan ? "loan" : ""}" style="animation-delay:${i * 35}ms">
       <span class="n">${i + 1}</span>
       ${t.logo ? `<img src="${t.logo}" alt="">` : badge(t)}
-      <span class="club"><span>${esc(t.name)}</span>${loan ? `<i class="loan">LOAN</i>` : ""}</span>
-      <span class="y">${yrs}</span>
+      <span class="nm">${esc(t.name)}</span>
+      <span class="y">${years(from, to)}</span>
     </li>`;
   }).join("");
   const h = $("hint");
   h.hidden = !G.round.hint;
   h.textContent = `${G.player.country} · ${G.player.position}`;
+}
+
+// '05–07, '16, '25–
+function years(from, to) {
+  const yy = y => "'" + String(y).slice(2);
+  if (to === null) return `${yy(from)}–`;
+  if (from === to) return yy(from);
+  return `${yy(from)}–${String(to).slice(2)}`;
 }
 
 function team(club) {
@@ -183,16 +195,24 @@ function badge(t) {
 
 function renderAnswer() {
   const left = LIVES - G.round.wrong.length;
-  $("lives").innerHTML = Array.from({ length: LIVES }, (_, i) => `<i class="${i < left ? "" : "x"}"></i>`).join("");
+  $("dots").innerHTML = Array.from({ length: LIVES }, (_, i) => `<i class="${i < left ? "" : "x"}"></i>`).join("");
   $("wrong").innerHTML = G.round.wrong.length
-    ? "MISSED " + G.round.wrong.map(id => `<s>${esc(byId(id).name.toUpperCase())}</s>`).join("")
-    : `${left} GUESSES`;
+    ? "not " + G.round.wrong.map(id => `<s>${esc(lastName(byId(id).name))}</s>`).join("")
+    : `${left} guesses`;
   $("btn-hint").disabled = G.round.hint;
-  $("guess").value = "";
-  closeSuggest();
+  input.value = "";
+  closeChips();
 }
 
 const byId = id => SEARCH[G.sport].find(p => p.id === id);
+const lastName = n => n.split(" ").length > 1 ? n.split(" ").slice(1).join(" ") : n;
+
+function shake() {
+  const f = $("guess-form");
+  f.classList.remove("shake");
+  void f.offsetWidth;
+  f.classList.add("shake");
+}
 
 function guess(p) {
   if (!G || G.round.done) return;
@@ -202,7 +222,7 @@ function guess(p) {
   save();
   if (G.round.wrong.length >= LIVES) return finish(false);
   renderAnswer();
-  $("guess").focus();
+  shake();
 }
 
 function finish(won) {
@@ -215,6 +235,7 @@ function finish(won) {
   if (won) { s.correct++; s.score += r.points; s.streak++; s.best = Math.max(s.best, s.streak); }
   else s.streak = 0;
   save();
+  input.blur();
   renderStats();
   showResult();
 }
@@ -225,37 +246,37 @@ function showResult() {
   $("result").hidden = false;
   $("hint").hidden = true;
   const v = $("verdict");
-  v.className = "verdict " + (r.won ? "good" : "bad");
-  v.textContent = r.won ? `CORRECT · +${r.points} PTS` : "OUT OF GUESSES · IT WAS";
+  v.className = "verdict" + (r.won ? "" : " bad");
+  v.textContent = r.won ? `Correct, +${r.points} points` : "Out of guesses. It was";
   $("reveal").textContent = G.player.name;
   $("reveal-meta").textContent = `${G.player.country} · ${G.player.position}` +
-    (G.stats.streak > 1 ? ` · ${G.stats.streak} IN A ROW` : "");
-  $("btn-next").focus();
+    (G.stats.streak > 1 ? ` · ${G.stats.streak} in a row` : "");
 }
 
 $("btn-next").addEventListener("click", nextRound);
 $("btn-hint").addEventListener("click", () => {
   G.round.hint = true;
   save();
-  renderPath();
-  renderAnswer();
+  renderGrid();
+  $("btn-hint").disabled = true;
 });
 $("btn-skip").addEventListener("click", () => finish(false));
 $("back").addEventListener("click", () => {
   G = null;
+  input.blur();
   document.body.className = "";
   $("game").hidden = true;
   $("home").hidden = false;
   renderHome();
 });
 
-// ---------- search with suggestions ----------
-const input = $("guess"), list = $("suggest");
-let hits = [], sel = 0;
+// ---------- guessing: one row of suggestion buttons ----------
+const input = $("guess"), chips = $("chips");
+let hits = [];
 
 input.addEventListener("input", () => {
   const q = fold(input.value.trim());
-  if (!q) return closeSuggest();
+  if (!q) return closeChips();
   hits = SEARCH[G.sport]
     .filter(p => !G.round.wrong.includes(p.id))
     .map(p => ({ p, rank: rank(p.id, q) }))
@@ -263,11 +284,11 @@ input.addEventListener("input", () => {
     .sort((a, b) => a.rank - b.rank || a.p.name.localeCompare(b.p.name))
     .slice(0, 8)
     .map(x => x.p);
-  sel = 0;
-  list.hidden = false;
-  list.innerHTML = hits.length
-    ? hits.map((p, i) => `<li data-i="${i}" class="${i === sel ? "on" : ""}">${mark(p.name, q)}</li>`).join("")
-    : `<li class="none">No player by that name</li>`;
+  chips.hidden = false;
+  chips.scrollLeft = 0;
+  chips.innerHTML = hits.length
+    ? hits.map((p, i) => `<button type="button" class="chip" data-i="${i}">${mark(p.name, q)}</button>`).join("")
+    : `<span class="none">No player by that name</span>`;
 });
 
 function rank(name, q) {
@@ -289,41 +310,34 @@ function mark(name, q) {
   return esc(name.slice(0, at)) + "<b>" + esc(name.slice(at, at + q.length)) + "</b>" + esc(name.slice(at + q.length));
 }
 
-input.addEventListener("keydown", e => {
-  if (list.hidden || !hits.length) return;
-  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-    e.preventDefault();
-    sel = (sel + (e.key === "ArrowDown" ? 1 : -1) + hits.length) % hits.length;
-    [...list.children].forEach((li, i) => li.classList.toggle("on", i === sel));
-    list.children[sel].scrollIntoView({ block: "nearest" });
-  } else if (e.key === "Enter") {
-    e.preventDefault();
-    pickHit(sel);
-  } else if (e.key === "Escape") closeSuggest();
+// Tapping a suggestion guesses it. preventDefault on pointerdown keeps the keyboard up.
+chips.addEventListener("pointerdown", e => {
+  const b = e.target.closest(".chip");
+  if (!b) return;
+  e.preventDefault();
+  const p = hits[+b.dataset.i];
+  closeChips();
+  guess(p);
 });
-list.addEventListener("pointerdown", e => {
-  const li = e.target.closest("li[data-i]");
-  if (!li) return;
-  e.preventDefault(); // keep focus in the input
-  pickHit(+li.dataset.i);
+// GUESS and Enter take the first suggestion.
+$("guess-form").addEventListener("submit", e => {
+  e.preventDefault();
+  if (!hits.length) { shake(); input.focus(); return; }
+  const p = hits[0];
+  closeChips();
+  guess(p);
 });
-input.addEventListener("blur", () => setTimeout(closeSuggest, 120));
+$("guess-form").querySelector(".go").addEventListener("pointerdown", e => {
+  if (document.activeElement === input) e.preventDefault();
+});
 
-function pickHit(i) {
-  const p = hits[i];
-  closeSuggest();
-  if (p) guess(p);
-}
-function closeSuggest() { list.hidden = true; hits = []; }
+// While typing on a phone the keyboard takes half the screen: drop the title and club names.
+input.addEventListener("focus", () => { if (touch) document.body.classList.add("typing"); });
+input.addEventListener("blur", () => document.body.classList.remove("typing"));
+
+function closeChips() { chips.hidden = true; hits = []; }
 
 function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); }
 
-function ticker() {
-  const lead = G.sport === "football" ? "DEADLINE DAY" : "TRADE DEADLINE";
-  const c = G.player.career;
-  const bit = `${lead} · ${c.length} MOVES · ${c[0][1]}–${c[c.length - 1][2] ?? "NOW"} · ONE NAME · `;
-  return bit.repeat(3);
-}
-
-document.querySelectorAll("[data-logo]").forEach(el => el.innerHTML = `${BRAND[0]}<i>${BRAND[1]}</i>`);
+fitViewport();
 renderHome();

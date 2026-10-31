@@ -1,0 +1,20 @@
+rules_version = '2';
+// Leaderboard: one row per player per phone. Anyone can read; writes must be a
+// well-formed score row. Nobody can delete.
+service cloud.firestore {
+  match /databases/{db}/documents {
+    match /scores/{id} {
+      allow read: if true;
+      allow create, update: if id.size() <= 64
+        && request.resource.data.keys().hasOnly(['name', 'fb', 'bb', 'total', 'best', 'played', 'correct', 'updated'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 20
+        && request.resource.data.fb is int && request.resource.data.fb >= 0 && request.resource.data.fb <= 1000000
+        && request.resource.data.bb is int && request.resource.data.bb >= 0 && request.resource.data.bb <= 1000000
+        && request.resource.data.total == request.resource.data.fb + request.resource.data.bb
+        && request.resource.data.best is int && request.resource.data.played is int && request.resource.data.correct is int
+        && request.resource.data.updated is timestamp;
+      allow delete: if false;
+    }
+  }
+}

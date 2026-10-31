@@ -63,13 +63,70 @@ function renderHome() {
       : `${POOLS[s].length} players`;
   }
 
-  const rows = names.map(n => {
+  renderBoard();
+}
+
+// ---------- shared leaderboard (Firestore REST, no SDK) ----------
+// One row per player name per phone. The web key is public by design; the
+// Firestore rules only allow well-formed score rows and no deletes.
+const FS = "https://firestore.googleapis.com/v1/projects/paper-trail-bemo/databases/(default)/documents";
+const FS_KEY = "AIzaSyCPPBlSuxRnHPndgxOl3BszR5ovMyLjssw";
+const device = (() => {
+  try {
+    let d = localStorage.getItem("pt.device");
+    if (!d) { d = Math.random().toString(36).slice(2, 10); localStorage.setItem("pt.device", d); }
+    return d;
+  } catch { return "nostore"; }
+})();
+const rowId = name => device + "-" + (fold(name).replace(/[^a-z0-9]+/g, "") || "x").slice(0, 40);
+let board = null; // rows from the server, or null when offline
+
+function pushScore(name) {
+  const p = profile(name), f = p.football, b = p.basketball;
+  if (!f.played && !b.played) return Promise.resolve();
+  const int = n => ({ integerValue: String(n) });
+  const fields = {
+    name: { stringValue: name }, fb: int(f.score), bb: int(b.score), total: int(f.score + b.score),
+    best: int(Math.max(f.best, b.best)), played: int(f.played + b.played), correct: int(f.correct + b.correct),
+    updated: { timestampValue: new Date().toISOString() },
+  };
+  return fetch(`${FS}/scores/${rowId(name)}?key=${FS_KEY}`, {
+    method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields }),
+  }).catch(() => {});
+}
+
+async function loadBoard() {
+  try {
+    const r = await fetch(`${FS}:runQuery?key=${FS_KEY}`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ structuredQuery: { from: [{ collectionId: "scores" }], orderBy: [{ field: { fieldPath: "total" }, direction: "DESCENDING" }], limit: 50 } }),
+    });
+    if (!r.ok) throw new Error(r.status);
+    board = (await r.json()).filter(x => x.document).map(x => {
+      const f = x.document.fields;
+      return { id: x.document.name.split("/").pop(), n: f.name.stringValue, fb: +f.fb.integerValue, bb: +f.bb.integerValue, total: +f.total.integerValue };
+    });
+  } catch { board = null; }
+  renderBoard();
+}
+
+function renderBoard() {
+  const mine = id => id.startsWith(device + "-");
+  // Offline: fall back to the scores saved on this phone.
+  const rows = board || Object.keys(db.profiles).map(n => {
     const p = profile(n);
-    return { n, fb: p.football.score, bb: p.basketball.score, best: Math.max(p.football.best, p.basketball.best) };
-  }).sort((a, b) => (b.fb + b.bb) - (a.fb + a.bb));
+    return { id: rowId(n), n, fb: p.football.score, bb: p.basketball.score, total: p.football.score + p.basketball.score };
+  }).filter(r => r.total > 0).sort((a, b) => b.total - a.total);
   $("board").hidden = rows.length === 0;
-  $("board-table").innerHTML = `<tr><th>Name</th><th>Football</th><th>Basketball</th><th>Best run</th></tr>` +
-    rows.map(r => `<tr><td>${esc(r.n)}</td><td>${r.fb}</td><td>${r.bb}</td><td>${r.best}</td></tr>`).join("");
+  $("board-title").textContent = board ? "Leaderboard" : "Scores on this phone";
+  $("board-table").innerHTML = `<tr><th>#</th><th>Name</th><th>Football</th><th>Basketball</th><th>Total</th></tr>` +
+    rows.map((r, i) => `<tr class="${mine(r.id) ? "me" : ""}"><td>${i + 1}</td><td>${esc(r.n)}</td><td>${r.fb}</td><td>${r.bb}</td><td>${r.total}</td></tr>`).join("");
+}
+
+// Upload whatever this phone already has (scores from before the leaderboard existed), then show the board.
+async function syncAll() {
+  await Promise.all(Object.keys(db.profiles).map(pushScore));
+  loadBoard();
 }
 
 $("profiles").addEventListener("click", e => {
@@ -235,6 +292,7 @@ function finish(won) {
   if (won) { s.correct++; s.score += r.points; s.streak++; s.best = Math.max(s.best, s.streak); }
   else s.streak = 0;
   save();
+  pushScore(G.name);
   input.blur();
   renderStats();
   showResult();
@@ -268,6 +326,7 @@ $("back").addEventListener("click", () => {
   $("game").hidden = true;
   $("home").hidden = false;
   renderHome();
+  loadBoard();
 });
 
 // ---------- guessing: one row of suggestion buttons ----------
@@ -341,3 +400,4 @@ function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<"
 
 fitViewport();
 renderHome();
+syncAll();

@@ -56,7 +56,7 @@ h1, h2, p { margin: 0; }
 .board table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .board th { text-align: left; font: 600 12px Barlow; color: var(--soft); padding: 8px 12px 4px; }
 .board td { padding: 8px 12px; border-top: 1px solid var(--line); font-weight: 700; }
-.board th:not(:first-child), .board td:not(:first-child) { text-align: right; }
+.board th, .board td { text-align: right; }
 .foot { color: var(--soft); font: 500 12px Barlow; text-align: center; padding: 18px 16px; padding-bottom: max(18px, env(safe-area-inset-bottom)); }
 
 /* Question + grid */
@@ -118,3 +118,9 @@ body.basketball .chip:first-child b { color: #9DB8FF; }
 .reveal-meta { color: var(--soft); font-size: 14px; margin-bottom: 12px; }
 .next { width: 100%; height: 56px; border-radius: 14px; background: var(--hot); color: #fff; font: 400 20px Anton; letter-spacing: .5px; }
 .next:active { filter: brightness(.9); }
+
+/* Leaderboard */
+.board td:first-child, .board th:first-child { width: 28px; color: var(--soft); padding-right: 0; text-align: left; }
+.board td:nth-child(2), .board th:nth-child(2) { text-align: left; }
+.board tr.me td { background: #FFF6C2; }
+.board td:last-child { font-weight: 700; }

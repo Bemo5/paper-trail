@@ -1,9 +1,9 @@
-// Journeyman: guess the player from his career path.
+// Paper Trail: guess the player from his career path.
 // Progress lives in localStorage and is written after every guess.
 
 // The name is split in two: the second half is drawn in the accent colour.
-const BRAND = ["JOURNEY", "MAN"];
-const KEY = "journeyman.v1";
+const BRAND = ["PAPER ", "TRAIL"];
+const KEY = "journeyman.v1"; // old name kept so saved scores carry over
 const LIVES = 3;
 const POINTS = { base: 100, wrong: 25, hint: 30, min: 10 };
 
@@ -326,5 +326,4 @@ function ticker() {
 }
 
 document.querySelectorAll("[data-logo]").forEach(el => el.innerHTML = `${BRAND[0]}<i>${BRAND[1]}</i>`);
-document.title = (BRAND[0] + BRAND[1]).toLowerCase().replace(/^./, c => c.toUpperCase());
 renderHome();

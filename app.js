@@ -1,6 +1,8 @@
 // Journeyman: guess the player from his career path.
 // Progress lives in localStorage and is written after every guess.
 
+// The name is split in two: the second half is drawn in the accent colour.
+const BRAND = ["JOURNEY", "MAN"];
 const KEY = "journeyman.v1";
 const LIVES = 3;
 const POINTS = { base: 100, wrong: 25, hint: 30, min: 10 };
@@ -59,8 +61,8 @@ function renderHome() {
   for (const s of Object.keys(POOLS)) {
     const st = p && p[s];
     document.querySelector(`[data-sub="${s}"]`).textContent = st && st.played
-      ? `${st.score} pts · ${st.correct}/${st.played} right`
-      : `${POOLS[s].length} players`;
+      ? `${st.score} PTS · ${st.correct}/${st.played} RIGHT · RUN ${st.streak}`
+      : `${POOLS[s].length} PLAYERS`;
   }
 
   const rows = names.map(n => {
@@ -68,7 +70,7 @@ function renderHome() {
     return { n, fb: p.football.score, bb: p.basketball.score, best: Math.max(p.football.best, p.basketball.best) };
   }).sort((a, b) => (b.fb + b.bb) - (a.fb + a.bb));
   $("board").hidden = rows.length === 0;
-  $("board-table").innerHTML = `<tr><th>Name</th><th>Football</th><th>Basketball</th><th>Best streak</th></tr>` +
+  $("board-table").innerHTML = `<tr><th>NAME</th><th>FOOTBALL</th><th>BASKETBALL</th><th>BEST RUN</th></tr>` +
     rows.map(r => `<tr><td>${esc(r.n)}</td><td>${r.fb}</td><td>${r.bb}</td><td>${r.best}</td></tr>`).join("");
 }
 
@@ -102,7 +104,6 @@ function startGame(name, sport) {
   $("home").hidden = true;
   $("game").hidden = false;
   $("g-player").textContent = name;
-  $("g-sport").textContent = sport === "football" ? "Football" : "Basketball";
   // Resume an unfinished round so a refresh can't skip a player.
   if (stats.current && POOLS[sport].some(p => p.id === stats.current.id)) loadRound();
   else nextRound();
@@ -139,7 +140,8 @@ function renderStats() {
   $("g-score").textContent = G.stats.score;
   $("g-streak").textContent = G.stats.streak;
   const total = POOLS[G.sport].length;
-  $("g-count").textContent = `${Math.min(G.stats.seen.length + (G.round.done ? 0 : 1), total)} of ${total}`;
+  $("g-count").innerHTML = `PLAYER ${Math.min(G.stats.seen.length + (G.round.done ? 0 : 1), total)}/${total}<br>${G.player.career.length} MOVES`;
+  $("ticker").textContent = ticker();
 }
 
 function renderPath() {
@@ -147,12 +149,11 @@ function renderPath() {
   $("path").innerHTML = career.map(([club, from, to, loan], i) => {
     const t = team(club);
     const yrs = to === null ? `${from}–` : from === to ? `${from}` : `${from}–${to}`;
-    return `<li class="stop" style="animation-delay:${i * 70}ms">
+    return `<li class="row" style="animation-delay:${i * 60}ms">
       <span class="n">${i + 1}</span>
-      ${loan ? `<span class="loan">Loan</span>` : ""}
-      ${t.logo ? `<img src="${t.logo}" alt="" loading="lazy">` : badge(t)}
-      <span class="club">${esc(t.name)}</span>
-      <span class="yrs">${yrs}</span>
+      ${t.logo ? `<img src="${t.logo}" alt="">` : badge(t)}
+      <span class="club"><span>${esc(t.name)}</span>${loan ? `<i class="loan">LOAN</i>` : ""}</span>
+      <span class="y">${yrs}</span>
     </li>`;
   }).join("");
   const h = $("hint");
@@ -182,9 +183,10 @@ function badge(t) {
 
 function renderAnswer() {
   const left = LIVES - G.round.wrong.length;
-  $("lives").innerHTML = Array.from({ length: LIVES }, (_, i) => `<i class="${i < left ? "" : "gone"}"></i>`).join("") +
-    `<span>${left} ${left === 1 ? "guess" : "guesses"} left</span>`;
-  $("wrong").innerHTML = G.round.wrong.map(id => `<li>${esc(byId(id).name)}</li>`).join("");
+  $("lives").innerHTML = Array.from({ length: LIVES }, (_, i) => `<i class="${i < left ? "" : "x"}"></i>`).join("");
+  $("wrong").innerHTML = G.round.wrong.length
+    ? "MISSED " + G.round.wrong.map(id => `<s>${esc(byId(id).name.toUpperCase())}</s>`).join("")
+    : `${left} GUESSES`;
   $("btn-hint").disabled = G.round.hint;
   $("guess").value = "";
   closeSuggest();
@@ -221,14 +223,13 @@ function showResult() {
   const r = G.round;
   $("answer").hidden = true;
   $("result").hidden = false;
-  $("hint").hidden = false;
-  $("hint").textContent = `${G.player.country} · ${G.player.position}`;
+  $("hint").hidden = true;
   const v = $("verdict");
   v.className = "verdict " + (r.won ? "good" : "bad");
-  v.textContent = r.won ? `Correct, +${r.points} points` : "Out of guesses. It was";
+  v.textContent = r.won ? `CORRECT · +${r.points} PTS` : "OUT OF GUESSES · IT WAS";
   $("reveal").textContent = G.player.name;
-  $("reveal-meta").textContent = `${G.player.career.length} clubs` +
-    (G.stats.streak > 1 ? ` · ${G.stats.streak} in a row` : "");
+  $("reveal-meta").textContent = `${G.player.country} · ${G.player.position}` +
+    (G.stats.streak > 1 ? ` · ${G.stats.streak} IN A ROW` : "");
   $("btn-next").focus();
 }
 
@@ -307,8 +308,6 @@ list.addEventListener("pointerdown", e => {
   pickHit(+li.dataset.i);
 });
 input.addEventListener("blur", () => setTimeout(closeSuggest, 120));
-// Keep the box and its suggestions above the phone keyboard.
-if (touch) input.addEventListener("focus", () => setTimeout(() => input.scrollIntoView({ block: "start", behavior: "smooth" }), 300));
 
 function pickHit(i) {
   const p = hits[i];
@@ -319,4 +318,13 @@ function closeSuggest() { list.hidden = true; hits = []; }
 
 function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); }
 
+function ticker() {
+  const lead = G.sport === "football" ? "DEADLINE DAY" : "TRADE DEADLINE";
+  const c = G.player.career;
+  const bit = `${lead} · ${c.length} MOVES · ${c[0][1]}–${c[c.length - 1][2] ?? "NOW"} · ONE NAME · `;
+  return bit.repeat(3);
+}
+
+document.querySelectorAll("[data-logo]").forEach(el => el.innerHTML = `${BRAND[0]}<i>${BRAND[1]}</i>`);
+document.title = (BRAND[0] + BRAND[1]).toLowerCase().replace(/^./, c => c.toUpperCase());
 renderHome();

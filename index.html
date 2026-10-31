@@ -2,99 +2,77 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Journeyman</title>
 <meta name="description" content="Name the player from the clubs he played for. Football and basketball.">
-<meta name="theme-color" content="#F2F3F5">
+<meta name="theme-color" content="#0B0B0B">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="app">
 
 <!-- Home -->
 <main id="home" class="screen">
-  <header class="brand">
-    <h1>Journeyman</h1>
-    <p>Name the player from the clubs he played for.</p>
-  </header>
+  <header class="top"><span class="logo" data-logo></span><span class="live">LIVE</span></header>
 
-  <section class="card who">
-    <label for="name">Your name</label>
-    <div class="name-row">
-      <input id="name" autocomplete="off" maxlength="20" placeholder="Type your name">
-    </div>
+  <section class="headline"><h1>Name the<br>player.</h1><p>You get his clubs. You get three guesses.</p></section>
+
+  <section class="who">
+    <label class="bar" for="name"><span class="tag">NAME</span><input id="name" autocomplete="off" maxlength="20" placeholder="TYPE YOUR NAME"></label>
     <div id="profiles" class="profiles"></div>
   </section>
 
   <section class="sports">
-    <button class="sport fb" data-sport="football">
-      <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="#fff" stroke="currentColor" stroke-width="3"/><path d="M24 14l8 6-3 9h-10l-3-9z" fill="currentColor"/><path d="M24 14V4M32 20l9-4M29 29l6 9M19 29l-6 9M16 20l-9-4" stroke="currentColor" stroke-width="3" fill="none"/></svg>
+    <button class="sport football" data-sport="football">
       <span class="sport-name">Football</span>
       <span class="sport-sub" data-sub="football"></span>
+      <span class="flagband"></span>
     </button>
-    <button class="sport bb" data-sport="basketball">
-      <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="currentColor"/><path d="M3 24h42M24 3v42M9 9c8 7 8 23 0 30M39 9c-8 7-8 23 0 30" stroke="#fff" stroke-width="2.6" fill="none"/></svg>
+    <button class="sport basketball" data-sport="basketball">
       <span class="sport-name">Basketball</span>
       <span class="sport-sub" data-sub="basketball"></span>
     </button>
   </section>
 
-  <section class="card board" id="board" hidden>
-    <h2>Played on this device</h2>
+  <section class="board" id="board" hidden>
+    <h2>Standings</h2>
     <table id="board-table"></table>
   </section>
 
-  <footer class="foot">Careers up to the 2025-26 season. Logos from ESPN.</footer>
+  <footer class="foot">CAREERS UP TO THE 2025-26 SEASON · LOGOS FROM ESPN</footer>
 </main>
 
 <!-- Game -->
 <main id="game" class="screen" hidden>
-  <header class="topbar">
-    <button class="back" id="back" aria-label="Home">
-      <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <div class="who-is">
-      <span id="g-player"></span>
-      <span id="g-sport"></span>
-    </div>
-    <div class="stats">
-      <div><b id="g-score">0</b><span>points</span></div>
-      <div><b id="g-streak">0</b><span>streak</span></div>
-    </div>
+  <header class="top">
+    <button class="back" id="back" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"/></svg></button>
+    <span class="logo" data-logo></span><span class="live">LIVE</span>
   </header>
+  <section class="strip"><h1>Who's<br>this?</h1><div class="count" id="g-count"></div></section>
+  <div class="flagband"></div>
+  <section class="score"><div id="g-player"></div><div>PTS<b id="g-score">0</b></div><div>RUN<b id="g-streak">0</b></div></section>
+  <ol id="path" class="list"></ol>
+  <p id="hint" class="hint" hidden></p>
 
-  <section class="card round">
-    <div class="round-head">
-      <h2>Who's this player?</h2>
-      <span id="g-count"></span>
-    </div>
-    <ol id="path" class="path"></ol>
-    <p id="hint" class="hint" hidden></p>
-  </section>
+  <div class="dock" id="answer">
+    <ul id="suggest" class="suggest" hidden></ul>
+    <div class="miss"><span id="wrong"></span><span class="lives" id="lives"></span><button id="btn-skip">GIVE UP</button></div>
+    <div class="bar"><span class="tag">GUESS</span><input id="guess" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="TYPE A NAME"><button class="hint-btn" id="btn-hint">HINT<br>−30</button></div>
+    <div class="ticker"><span id="ticker"></span></div>
+  </div>
 
-  <section class="card answer" id="answer">
-    <div class="lives" id="lives"></div>
-    <div class="search">
-      <input id="guess" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Type a player's name">
-      <ul id="suggest" class="suggest" hidden></ul>
-    </div>
-    <ul id="wrong" class="wrong"></ul>
-    <div class="actions">
-      <button class="btn ghost" id="btn-hint">Hint <small>-30</small></button>
-      <button class="btn ghost" id="btn-skip">Give up</button>
-    </div>
-  </section>
-
-  <section class="card result" id="result" hidden>
+  <div class="dock result" id="result" hidden>
     <p class="verdict" id="verdict"></p>
     <h3 id="reveal"></h3>
     <p class="meta" id="reveal-meta"></p>
-    <button class="btn primary" id="btn-next">Next player</button>
-  </section>
+    <button class="next" id="btn-next"><span class="tag">NEXT</span><span>NEXT PLAYER</span></button>
+  </div>
 </main>
 
+</div>
 <script src="players.js"></script>
 <script src="clubs.js"></script>
 <script src="app.js"></script>
